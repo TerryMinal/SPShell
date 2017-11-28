@@ -33,9 +33,17 @@ int main() {
     }
 
     if (strchr(str, semicolon) != 0 ) {
+      int i = 0; 
       printf("SEMICOLON!"); 
       args = parse_args(str, &semicolon);
-      break;
+      while (args[i] != NULL) {
+	printf("args[%d] = %s\n", i, args[i]); 
+	args[i] = * parse_args(args[i], " ");
+	i++;
+      }
+      
+      
+      
     }
    
       
