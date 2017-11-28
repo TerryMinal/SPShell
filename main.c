@@ -3,12 +3,12 @@
 #include <unistd.h>
 #include <string.h>
 
-char ** parse_args(char * line ) {
-  char **args = malloc(6 * sizeof(char *));
+char ** parse_args(char * line, char * delimiter ) {
+  char **args = malloc(100 * sizeof(char *));
   char *remaining = line;
   int i = 0;
   while (remaining != NULL) {
-    args[i] = strsep(&remaining, " ");
+    args[i] = strsep(&remaining, delimiter);
     i++;
     // printf("%s\n", remaining);
   }
@@ -17,9 +17,11 @@ char ** parse_args(char * line ) {
 
 int main() {
   char str[100];
+  char ** args; 
   char * exit = "exit\n";
-  char * semicolon = ";" ;
-  char * str_pointer; 
+  char semicolon = ';' ;
+  char * str_pointer;
+  char * space = " "; 
   //printf("command:");
   while( fgets(str,sizeof(str), stdin) ) {
     //printf("str: %s\n", str);
@@ -30,6 +32,14 @@ int main() {
       break;
     }
 
+    if (strchr(str, semicolon) != 0 ) {
+      printf("SEMICOLON!"); 
+      args = parse_args(str, &semicolon);
+      break;
+    }
+   
+      
+    /* 
     while (str_pointer) {
       if (strstr(str,semicolon) != 0) {
 	str_pointer = strstr(str, semicolon);
@@ -37,11 +47,11 @@ int main() {
 	printf("after semi: %s\n", str_pointer);
 	parse_args(str); 
 	parse_args(str_pointer);
-    }
+	} */ 
       
   
     printf("command passed: %s\n", str);
-    char ** args = parse_args(str);
+    args = parse_args(str,space);
   }
   
   return 0; 
