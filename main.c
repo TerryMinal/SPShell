@@ -11,7 +11,7 @@ char ** parse_args(char * line, char * delimiter ) {
     args[i] = strsep(&remaining, delimiter);
     i++;
     // printf("%s\n", remaining);
-  }
+  }q
   return args;
 }
 
