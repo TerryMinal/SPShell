@@ -3,6 +3,14 @@
 #include <unistd.h>
 #include <string.h>
 
+void print_args(char **arr) {
+  int i = 0;
+  while ( *(arr + i) != NULL ) {
+    printf("command: %s\n", arr[i]);
+    i++;
+  }
+}
+
 char ** parse_args(char * line, char * delimiter ) {
   char **args = malloc(100 * sizeof(char *));
   char *remaining = line;
@@ -11,15 +19,15 @@ char ** parse_args(char * line, char * delimiter ) {
     args[i] = strsep(&remaining, delimiter);
     i++;
     // printf("%s\n", remaining);
-  }q
+  }
   return args;
 }
 
 int main() {
-  char str[100];
-  char ** args; 
-  char * exit = "exit\n";
-  char semicolon = ';' ;
+  char str[100]; //contains the passed commands
+  char ** args; //array of commands after parsing
+  char * exit = "exit\n";  
+  char semicolon = ';'; 
   char * str_pointer;
   char * space = " "; 
   //printf("command:");
@@ -31,7 +39,7 @@ int main() {
       printf("User exited!\n");
       break;
     }
-
+    // find first occurrence of the character semicolon
     if (strchr(str, semicolon) != 0 ) {
       int i = 0; 
       printf("SEMICOLON!"); 
@@ -58,8 +66,8 @@ int main() {
 	} */ 
       
   
-    printf("command passed: %s\n", str);
     args = parse_args(str,space);
+    print_args(args);
   }
   
   return 0; 
