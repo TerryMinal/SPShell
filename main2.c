@@ -117,27 +117,59 @@ void execute_args(char **args) {
 
 
 int main() {
+  char str[100];
+  char ** args; 
+  char * exit = "exit";
+  char semicolon = ';' ;
+  char * str_pointer;
+  char * space = " ";
+  int exit_stat = 0;
+ 
+  //printf("command:");
+  while( fgets(str,sizeof(str), stdin) ) {
+    //Stripping input of the "\n"
+    str[strlen(str)-1] = 0;
 
-  char str[100]; //contains the passed commands
-  char **args;
-  char *n;
-  int status;
-  int i = 0;
-  // printf("%s\n", strerror(errno));
-  while( fgets(str, sizeof(str), stdin) ) {
-    char *n = strchr(str, '\n');
-    *n = '\0'; //removes the newline from fgets
-    args = parse_args(str, ";"); //separates the commands. Will provide one command when there is only one command
-    execute_args(args); //run all the commands obtained above
+    redirect(str);
+    
+    //Exit "signal"
+    if (strcmp (exit, str) == 0 ) {
+      printf("User exited!\n");
+      exit_stat = 1; 
+      break;
+    }
+
+    //If there is a semicolon in the input: 
+    if (strchr(str, semicolon) != 0 ) {
+      int i = 0; 
+      //printf("SEMICOLON!\n");
+      
+      args = parse_args(str, &semicolon);
+      printf("Array after parsing with semicolons\n"); 
+      print_args(args);
+      printf("****************\n");
+      
+      while (args[i] != NULL) {
+	args[i] = * parse_args(args[i], " ");
+	i++;
+      }
+      
+      printf("Array after parsing with blank space\n");
+      print_args(args);
+    } 
+
+    //No semicolons detected in input: 
+    else {
+      args = parse_args(str,space);
+      printf("No semicolons detected. Parsing input through white spaces\n");
+      print_args(args);
+    } 
+  
   }
-  //   if (strchr(str, ';') != NULL) {
-  //     args = parse_args(str, ";");
-  //     execute_args(args);
-  //   } //end if
-  //   else {
-  //     args = parse_args(str, " ");
-  //   }
-  // }
-
   return 0;
 }
+
+
+
+
+  

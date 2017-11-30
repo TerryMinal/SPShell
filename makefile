@@ -1,5 +1,5 @@
-all: main.c
-	gcc -g -o main main.c
+all: main2.c
+	gcc -g -o main main2.c
 
 run: all
-		./main
+	./main
