@@ -23,6 +23,18 @@ void print_args(char **arr) {
   }
 }
 
+void remove_extra_spaces(char **args) {
+  int i =0;
+  char *p; 
+  while ( *(args + i) != NULL) {
+    p = strstr( *(args + i), " "); 
+    while (p != NULL) {
+      p = "";
+      
+    }
+  }
+}
+
 char ** parse_args(char * line, char * delimiter ) {
   char **args = calloc(100, sizeof(char *));
   int i = 0;
