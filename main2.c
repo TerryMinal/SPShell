@@ -32,6 +32,7 @@ void remove_extra_spaces(char **args) {
       p = "";
       
     }
+    i++; 
   }
 }
 
@@ -73,6 +74,7 @@ int redirect(char *str) {
     return 0;
   }
   command = parse_args(args[0], " ");
+  printf("Command 0: %s\n", args[0]); 
   p = fork();
   if (p == 0) {
     int cp = dup(f);
@@ -175,7 +177,9 @@ int main() {
       args = parse_args(str,space);
       printf("No semicolons detected. Parsing input through white spaces\n");
       print_args(args);
-    } 
+    }
+
+    execute_args(args); 
   
   }
   return 0;
