@@ -2,6 +2,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/wait.h>
+
+// char * str_replace(char *str, char replace, char replace_with) {
+//   char *n = strchr(str, '\n');
+//   if (replace_with == NULL)
+//     replace_with = '/0';
+//   *n = replace_with; //removes the newline from fgets
+//   return str;
+// }
 
 void print_args(char **arr) {
   int i = 0;
@@ -12,63 +22,69 @@ void print_args(char **arr) {
 }
 
 char ** parse_args(char * line, char * delimiter ) {
-  char **args = malloc(100 * sizeof(char *));
-  char *remaining = line;
+  char **args = calloc(100, sizeof(char *));
   int i = 0;
-  while (remaining != NULL) {
-    args[i] = strsep(&remaining, delimiter);
+  while (line != NULL) {
+    args[i] = strsep(&line, delimiter);
     i++;
     // printf("%s\n", remaining);
   }
+  args[i] = NULL;
   return args;
 }
 
-int main() {
-  char str[100]; //contains the passed commands
-  char ** args; //array of commands after parsing
-  char * exit = "exit\n";  
-  char semicolon = ';'; 
-  char * str_pointer;
-  char * space = " "; 
-  //printf("command:");
-  while( fgets(str,sizeof(str), stdin) ) {
-    //printf("str: %s\n", str);
-    //printf("exit: %s\n", exit);
-    //printf("RESULT: %d", strcmp (exit, str)); 
-    if (strcmp (exit, str) == 0 ) {
+#define EXIT "exit"
+#define CD "cd"
+void execute_args(char **args) {
+  char **arg;
+  int status;
+  int i = 0;
+  while ( *(args+i) != NULL) {
+    arg = parse_args( *(args+i), " ");
+    print_args(arg);
+    //checking for special cases exit and cd
+    if (strcmp (EXIT, arg[0]) == 0 ) {
       printf("User exited!\n");
-      break;
+      exit(1);
     }
-    // find first occurrence of the character semicolon
-    if (strchr(str, semicolon) != 0 ) {
-      int i = 0; 
-      printf("SEMICOLON!"); 
-      args = parse_args(str, &semicolon);
-      while (args[i] != NULL) {
-	printf("args[%d] = %s\n", i, args[i]); 
-	args[i] = * parse_args(args[i], " ");
-	i++;
-      }
-      
-      
-      
+    if (strcmp (arg[0], CD) == 0) {
+      chdir(arg[1]);
     }
-   
-      
-    /* 
-    while (str_pointer) {
-      if (strstr(str,semicolon) != 0) {
-	str_pointer = strstr(str, semicolon);
-	str_pointer++;
-	printf("after semi: %s\n", str_pointer);
-	parse_args(str); 
-	parse_args(str_pointer);
-	} */ 
-      
-  
-    args = parse_args(str,space);
-    print_args(args);
+    //finished checking for special cases
+    int p = fork();
+    if (p == 0) {
+      execvp(arg[0], arg);
+      exit(1);
+    }
+    else
+      wait(&status);
+    i++;
   }
-  
-  return 0; 
+}
+
+
+int main() {
+
+  char str[100]; //contains the passed commands
+  char **args;
+  char *n;
+  int status;
+  int i = 0;
+  // printf("%s\n", strerror(errno));
+  while( fgets(str, sizeof(str), stdin) ) {
+    char *n = strchr(str, '\n');
+    *n = '\0'; //removes the newline from fgets
+    args = parse_args(str, ";");
+    execute_args(args);
+  }
+  //   if (strchr(str, ';') != NULL) {
+  //     args = parse_args(str, ";");
+  //     execute_args(args);
+  //   } //end if
+  //   else {
+  //     args = parse_args(str, " ");
+  //   }
+  // }
+
+  return 0;
 }
