@@ -31,29 +31,19 @@ void print_args(char **arr) {
   }
 }
 
-// trims the beginning and end spaces (if there are any) of any given character
-void trim_spaces(char **args) {
-  int i =0;
-  char *p;
-  while ( *(args + i) != NULL) {
-    p = strstr( *(args + i), STR_SPACE);
-    while (p != NULL) {
-      p = "";
-
-    }
-    i++;
-  }
-}
 
 // separates a string based on delimteer and makes it into an array
 // returns an array
 char ** parse_args(char * line, char * delimiter ) {
   char **args = calloc(100, sizeof(char *));
   int i = 0;
+  char *comm;
   while (line != NULL) {
-    args[i] = strsep(&line, delimiter);
-    i++;
-    // printf("%s\n", remaining);
+    comm = strsep(&line, delimiter);
+    if (strlen(comm) != 0) { //adds to array only if it is not an empty string
+      args[i] = comm;
+      i++;
+    }
   }
   args[i] = NULL;
   return args;
@@ -120,6 +110,7 @@ void execute_args(char **args) {
     else { // if it's not redirection it must be a normal command with args
       arg = parse_args( *(args+i), STR_SPACE); //splits into command and args in non redirectional commands
       print_args(arg);
+      // trim_spaces(arg[0]);
       //checking for special cases exit and cd
       if (strcmp (EXIT, arg[0]) == 0 ) { // checking for exit command case
         printf("User exited!\n");
@@ -132,6 +123,7 @@ void execute_args(char **args) {
       else {
         p = fork();
         if (p == 0) { // child process
+          // trim_spaces(arg[1]);
           execvp(arg[0], arg);
           exit(1); //quits the child process
         }
