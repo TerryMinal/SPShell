@@ -94,15 +94,42 @@ int redirect(char *str) {
     return 1;
   }
 }
+
+void pipes(char * command1, char * command2) {
+  FILE *fp;
+  FILE * fp2;
+  char path[10000];
+
+  fp = popen(command1, "r");
+  fp2 = popen(command2, "w");
+   
+  if (fp == NULL || fp2 == NULL) {
+    printf("Error creating pipe!\n");
+    exit(1);
+  }
+  
+  while (fgets( path, sizeof(path), fp) != NULL ) {
+    //printf("%s", path); 
+    fprintf(fp2, "%s",path);
+  }
+  
+  pclose(fp);
+  pclose(fp2);
+}
+
+
 // given array of commands such as [ls -al, cd .., less main.c]
 // array can be obtained through parse_args(args, STR_SEMICOLON)
 void execute_args(char **args) {
   char *EXIT = "exit";
   char *CD = "cd";
+  char * pipe = "|"; 
   char **arg; //array of single command
   int status; // status of exit
   int i = 0; // incrementor for array
   int p; // used for forking
+
+	  
   while ( *(args+i) != NULL) { // loops through all the commands
     if (redirect(*args+i)) { // check whether if it's redirection
       printf("redirected...\n" );
@@ -112,6 +139,7 @@ void execute_args(char **args) {
       print_args(arg);
       // trim_spaces(arg[0]);
       //checking for special cases exit and cd
+    
       if (strcmp (EXIT, arg[0]) == 0 ) { // checking for exit command case
         printf("User exited!\n");
         exit(1);
@@ -124,6 +152,12 @@ void execute_args(char **args) {
         p = fork();
         if (p == 0) { // child process
           // trim_spaces(arg[1]);
+
+	  if ( strcmp( *(arg+1), "|") == 0 ) {
+	    pipes(*(arg), *(arg+2));
+	    exit(10);
+	  }
+	  
           execvp(arg[0], arg);
           exit(1); //quits the child process
         }
