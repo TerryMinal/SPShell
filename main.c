@@ -14,13 +14,21 @@
 #define STR_SPACE " "
 #define CHAR_SEMICOLON ';'
 #define STR_SEMICOLON ";"
-// char * str_replace(char *str, char replace, char replace_with) {
-//   char *n = strchr(str, '\n');
-//   if (replace_with == NULL)
-//     replace_with = '/0';
-//   *n = replace_with; //removes the newline from fgets
-//   return str;
-// }
+
+void trim_spaces(char *str) {
+  if (str[0] == ' ')
+    str[0] = str[1];
+  if (str[strlen(str) - 1] == ' ')
+    str[strlen(str) - 1] = '\0';
+}
+
+void arr_trim_spaces(char **arr) {
+  int i = 0;
+  while ( *(arr + i) != NULL ) {
+    trim_spaces(*(arr + i));
+    i++;
+  }
+}
 
 // prints all elements of an array
 void print_args(char **arr) {
@@ -30,7 +38,6 @@ void print_args(char **arr) {
     i++;
   }
 }
-
 
 // separates a string based on delimteer and makes it into an array
 // returns an array
@@ -77,8 +84,8 @@ int redirect(char *str) {
     printf("did not redirect\n");
     return 0;
   }
-  // wrong: fix it Terry. Does not account fo < redirection
   command = parse_args(args[0], STR_SPACE);
+  arr_trim_spaces(command);
   int p = fork(); // fork child to execute redirection
   if (p == 0) { // if child
     int cp = dup(f); //make copy of stdin/stdout
