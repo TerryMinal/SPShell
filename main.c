@@ -10,9 +10,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include "main.h"
 
 #define STR_SPACE " "
-#define CHAR_SEMICOLON ';'
 #define STR_SEMICOLON ";"
 
 // prints all elements of an array
@@ -41,12 +41,14 @@ char ** parse_args(char * line, char * delimiter ) {
   return args;
 }
 
+//removes leading and trailing spaces of a given command
+// assumes no spaces are in the string other than the beginning and the end
 char * trim_spaces(char *str) {
   char **ret = parse_args(str, STR_SPACE);
-  printf("trimed : %s\n", ret[0]);
   return ret[0];
 }
 
+// trims all the leading and trailing spaces of a list of commands
 void arr_trim_spaces(char **arr) {
   int i = 0;
   while ( *(arr + i) != NULL ) {
@@ -83,7 +85,7 @@ int redirect(char *str) {
     // printf("stdin\n");
   }
   else { //if the user didn't attempt to redirect
-    printf("did not redirect\n");
+    // printf("did not redirect\n");
     return 0;
   }
   command = parse_args(args[0], STR_SPACE);
@@ -93,7 +95,7 @@ int redirect(char *str) {
     dup2(fd, f); // duplicate behavior of stdin/stdout to file fd
     close(fd); // close file fd
     execvp(command[0], command); //executes command. Command puts output into stdout/stdin. Dup2 duplicates that behavior
-    dup2(cp, f); //reinstate the original std file by copying the stdin/stdout file back into its original place
+    dup2(cp, f); //reinstate the original std file by copying the stdin/stdout copy back into its original place
     close(cp); //close copy of stdout/stdin
     exit(1); //end child
   }
@@ -102,36 +104,34 @@ int redirect(char *str) {
     return 1;
   }
 }
-
-void pipes(char * command1, char * command2) {
-  FILE *fp;
-  FILE * fp2;
-  char path[10000];
-
-  fp = popen(command1, "r");
-  fp2 = popen(command2, "w");
-
-  if (fp == NULL || fp2 == NULL) {
-    printf("Error creating pipe!\n");
-    exit(1);
-  }
-
-  while (fgets( path, sizeof(path), fp) != NULL ) {
-    //printf("%s", path);
-    fprintf(fp2, "%s",path);
-  }
-
-  pclose(fp);
-  pclose(fp2);
-}
+//
+// void execute_pipes(char *command1, char *command2) {
+//   char **com1 = parse_args(command1, " ");
+//   char **com2 = parse_args(command2, " ");
+//   int buffer;
+//   FILE *c = popen(command1, "r");
+//   if (c == NULL) {
+//     printf("pipe did not execute\n");
+//   }
+//   else {
+//     execvp(com1[0], com1);
+//
+//     // write(STDOUT_FILENO, &buffer, sizeof(STDOUT_FILENO));
+//     pclose(c);
+//   }
+//   int n = read(c, &buffer, sizeof(c));
+//   printf("%d\n", n);
+//   execl(com2[2], buffer);
+// }
 
 
 // given array of commands such as [ls -al, cd .., less main.c]
+// executes all the given commands
 // array can be obtained through parse_args(args, STR_SEMICOLON)
 void execute_args(char **args) {
   char *EXIT = "exit";
   char *CD = "cd";
-  char * pipe = "|";
+  char * PIPE = "|";
   char **arg; //array of single command
   int status; // status of exit
   int i = 0; // incrementor for array
@@ -140,11 +140,15 @@ void execute_args(char **args) {
 
   while ( *(args+i) != NULL) { // loops through all the commands
     if (redirect(*args+i)) { // check whether if it's redirection
-      printf("redirected...\n" );
+      // printf("redirected...\n" );
     }
+    // else if (strstr( *(args + i), PIPE) != NULL) {
+    //   char **p = parse_args( *(args + i) , PIPE);
+    //   execute_pipes(p[0], p[1]);
+    // }
     else { // if it's not redirection it must be a normal command with args
       arg = parse_args( *(args+i), STR_SPACE); //splits into command and args in non redirectional commands
-      print_args(arg);
+      // print_args(arg);
       // trim_spaces(arg[0]);
       //checking for special cases exit and cd
 
@@ -160,12 +164,6 @@ void execute_args(char **args) {
         p = fork();
         if (p == 0) { // child process
           // trim_spaces(arg[1]);
-
-	  if ( strcmp( *(arg+1), "|") == 0 ) {
-	    pipes(*(arg), *(arg+2));
-	    exit(10);
-	  }
-
           execvp(arg[0], arg);
           exit(1); //quits the child process
         }
