@@ -193,5 +193,5 @@ int main() {
     args = parse_args(str, STR_SEMICOLON); //separates the commands. Will provide one command when there is only one command
     execute_args(args); //run all the commands obtained above
   }
-    return 0;
+  return 0;
 }
