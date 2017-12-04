@@ -17,3 +17,5 @@
   // executes all the given commands
   // array can be obtained through parse_args(args, STR_SEMICOLON)
   void execute_args(char **args);
+  // execute piping if any
+  void execute_pipes(char **args) {

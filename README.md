@@ -9,11 +9,11 @@ Project 2: make  shell
   * cd command
   * separating and executing multiple commands separated by `;`
   * Redirecting stdout and stdin
+  * Piping
 
 <hr>
 
 ### Features that we tried to implement but didn't pan out
-  * There was an attempt to implement piping but we were unsuccessful in the end. Code has been left in but has been commented out
 
 <hr>
 
@@ -49,6 +49,8 @@ Project 2: make  shell
   // executes all the given commands
   // array can be obtained through parse_args(args, STR_SEMICOLON)
   void execute_args(char **args);
+  // execute piping if any
+  void execute_pipes(char **args);
 ```
 
 <hr>

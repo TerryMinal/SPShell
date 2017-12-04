@@ -104,25 +104,31 @@ int redirect(char *str) {
     return 1;
   }
 }
-//
-// void execute_pipes(char *command1, char *command2) {
-//   char **com1 = parse_args(command1, " ");
-//   char **com2 = parse_args(command2, " ");
-//   int buffer;
-//   FILE *c = popen(command1, "r");
-//   if (c == NULL) {
-//     printf("pipe did not execute\n");
-//   }
-//   else {
-//     execvp(com1[0], com1);
-//
-//     // write(STDOUT_FILENO, &buffer, sizeof(STDOUT_FILENO));
-//     pclose(c);
-//   }
-//   int n = read(c, &buffer, sizeof(c));
-//   printf("%d\n", n);
-//   execl(com2[2], buffer);
-// }
+
+// execute piping if any
+void execute_pipes(char **args) {
+  char **comm2 = parse_args(args[1], STR_SPACE);
+  int status;
+  FILE *fp = popen(args[0], "r"); // run the first command
+  if (fp == NULL) {
+    printf("Error creating pipe!\n");
+  }
+  else {
+    int p = fork();
+    if (p == 0) {
+      int cp = dup(STDIN_FILENO); // make duplicate of stdin
+      dup2(fileno(fp), STDIN_FILENO); // reads fp and stdin duplicates it
+      // print_args(comm2);
+      execvp(comm2[0], comm2);
+      dup2(cp, STDIN_FILENO); // reinstates stdin at original file descriptor
+      pclose(fp);
+    }
+    else {
+      wait(&status);
+    }
+  }
+}
+
 
 
 // given array of commands such as [ls -al, cd .., less main.c]
@@ -137,15 +143,14 @@ void execute_args(char **args) {
   int i = 0; // incrementor for array
   int p; // used for forking
 
-
   while ( *(args+i) != NULL) { // loops through all the commands
     if (redirect(*args+i)) { // check whether if it's redirection
       // printf("redirected...\n" );
     }
-    // else if (strstr( *(args + i), PIPE) != NULL) {
-    //   char **p = parse_args( *(args + i) , PIPE);
-    //   execute_pipes(p[0], p[1]);
-    // }
+    else if (strstr( *(args + i), PIPE) != NULL) { // if it is piping
+      arg = parse_args( *(args + i) , PIPE);
+      execute_pipes(arg);
+    }
     else { // if it's not redirection it must be a normal command with args
       arg = parse_args( *(args+i), STR_SPACE); //splits into command and args in non redirectional commands
       // print_args(arg);
@@ -159,6 +164,7 @@ void execute_args(char **args) {
       else if (strcmp (arg[0], CD) == 0) { // checking for cd command case
         chdir(arg[1]); // changes current directory
       }
+
       //finished checking for special cases
       else {
         p = fork();
