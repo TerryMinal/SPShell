@@ -15,21 +15,6 @@
 #define CHAR_SEMICOLON ';'
 #define STR_SEMICOLON ";"
 
-void trim_spaces(char *str) {
-  if (str[0] == ' ')
-    str[0] = str[1];
-  if (str[strlen(str) - 1] == ' ')
-    str[strlen(str) - 1] = '\0';
-}
-
-void arr_trim_spaces(char **arr) {
-  int i = 0;
-  while ( *(arr + i) != NULL ) {
-    trim_spaces(*(arr + i));
-    i++;
-  }
-}
-
 // prints all elements of an array
 void print_args(char **arr) {
   int i = 0;
@@ -56,6 +41,21 @@ char ** parse_args(char * line, char * delimiter ) {
   return args;
 }
 
+char * trim_spaces(char *str) {
+  char **ret = parse_args(str, STR_SPACE);
+  printf("trimed : %s\n", ret[0]);
+  return ret[0];
+}
+
+void arr_trim_spaces(char **arr) {
+  int i = 0;
+  while ( *(arr + i) != NULL ) {
+    *(arr + i) = trim_spaces(*(arr + i));
+    i++;
+  }
+}
+
+
 // handles case where user uses redirecting ">" and "<"
 // returns 0,1: 0 is False, 1 is True
 int redirect(char *str) {
@@ -66,6 +66,7 @@ int redirect(char *str) {
   int status; // holds exit status
   if (strstr( str, ">") != NULL) { //case where user is redirecting stdout
     args = parse_args( str, ">"); // parses to separate something like "command>file" into [command, file]
+    arr_trim_spaces(args);
     // print_args(args);
     //creates a file with name passed in args if none exist, opens in write only and deletes any previous content otherwise
     fd = open(args[1], O_WRONLY | O_TRUNC | O_CREAT, 0666);
@@ -74,6 +75,7 @@ int redirect(char *str) {
   }
   else if (strstr( str, "<") != NULL) { //case where user is redirecting stdin
     args = parse_args( str, "<");
+    arr_trim_spaces(args);
     // print_args(args);
     // creates a file for read only
     fd = open(args[1], O_RDONLY, 0666);
@@ -85,7 +87,6 @@ int redirect(char *str) {
     return 0;
   }
   command = parse_args(args[0], STR_SPACE);
-  arr_trim_spaces(command);
   int p = fork(); // fork child to execute redirection
   if (p == 0) { // if child
     int cp = dup(f); //make copy of stdin/stdout
@@ -109,17 +110,17 @@ void pipes(char * command1, char * command2) {
 
   fp = popen(command1, "r");
   fp2 = popen(command2, "w");
-   
+
   if (fp == NULL || fp2 == NULL) {
     printf("Error creating pipe!\n");
     exit(1);
   }
-  
+
   while (fgets( path, sizeof(path), fp) != NULL ) {
-    //printf("%s", path); 
+    //printf("%s", path);
     fprintf(fp2, "%s",path);
   }
-  
+
   pclose(fp);
   pclose(fp2);
 }
@@ -130,13 +131,13 @@ void pipes(char * command1, char * command2) {
 void execute_args(char **args) {
   char *EXIT = "exit";
   char *CD = "cd";
-  char * pipe = "|"; 
+  char * pipe = "|";
   char **arg; //array of single command
   int status; // status of exit
   int i = 0; // incrementor for array
   int p; // used for forking
 
-	  
+
   while ( *(args+i) != NULL) { // loops through all the commands
     if (redirect(*args+i)) { // check whether if it's redirection
       printf("redirected...\n" );
@@ -146,7 +147,7 @@ void execute_args(char **args) {
       print_args(arg);
       // trim_spaces(arg[0]);
       //checking for special cases exit and cd
-    
+
       if (strcmp (EXIT, arg[0]) == 0 ) { // checking for exit command case
         printf("User exited!\n");
         exit(1);
@@ -164,7 +165,7 @@ void execute_args(char **args) {
 	    pipes(*(arg), *(arg+2));
 	    exit(10);
 	  }
-	  
+
           execvp(arg[0], arg);
           exit(1); //quits the child process
         }
